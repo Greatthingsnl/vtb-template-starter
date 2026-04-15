@@ -28,8 +28,12 @@ window.API = (() => {
     update:      (id, p)    => req('PUT',    `/api/projects/${id}`, p),
     remove:      (id)       => req('DELETE', `/api/projects/${id}`),
     clone:       (id, p)    => req('POST',   `/api/projects/${id}/clone`, p),
+    attach:      (p)        => req('POST',   '/api/projects/attach', p),
     openInVSCode:(id)       => req('POST',   `/api/projects/${id}/open-vscode`, {}),
     touch:       (id, p)    => req('POST',   `/api/projects/${id}/touch`, p || {}),
+
+    fsList:      (path, showHidden) => req('GET', `/api/fs/list?path=${encodeURIComponent(path || '')}&showHidden=${showHidden ? 1 : 0}`),
+    fsPlaces:    ()         => req('GET', '/api/fs/places'),
 
     readFile:    (id, path)          => req('GET', `/api/projects/${id}/file?path=${encodeURIComponent(path)}`),
     writeFile:   (id, path, content) => req('PUT', `/api/projects/${id}/file?path=${encodeURIComponent(path)}`, { content }),

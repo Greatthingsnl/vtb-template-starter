@@ -1,13 +1,15 @@
 // Builds a single ready-to-paste AI prompt from project data.
 const fs = require('fs');
 const path = require('path');
-const { findProject, projectDir } = require('./projectManager');
+const { findProject, projectDir, physicalFile } = require('./projectManager');
 const git = require('./gitHelper');
 
 function readOr(p, fallback = '') {
   try { return fs.readFileSync(p, 'utf8'); } catch { return fallback; }
 }
-
+function readLogical(project, logical) {
+  return readOr(path.join(projectDir(project), physicalFile(project, logical)));
+}
 function tail(s, lines) {
   return s.split('\n').slice(-lines).join('\n');
 }
@@ -16,27 +18,27 @@ function buildContext(id, opts = {}) {
   const p = findProject(id);
   if (!p) return null;
   const dir = projectDir(p);
-  const promptsMd   = readOr(path.join(dir, 'ai/prompts.md'));
-  const contextMd   = readOr(path.join(dir, 'ai/context.md'));
-  const projectMd   = readOr(path.join(dir, 'docs/project.md'));
-  const todoMd      = readOr(path.join(dir, 'tasks/todo.md'));
-  const changelogMd = readOr(path.join(dir, 'changelog/changelog.md'));
+  const promptsMd   = readLogical(p, 'ai/prompts.md');
+  const contextMd   = readLogical(p, 'ai/context.md');
+  const projectMd   = readLogical(p, 'docs/project.md');
+  const todoMd      = readLogical(p, 'tasks/todo.md');
+  const changelogMd = readLogical(p, 'changelog/changelog.md');
   const gitInfo = git.status(dir);
 
   const parts = [];
   parts.push(`# AI Context: ${p.clientName} / ${p.projectName}`);
   parts.push('');
   parts.push(`**Status:** ${p.status}  |  **Type:** ${p.templateId}  |  **Laatst geopend:** ${p.lastOpenedAt || '—'}`);
+  if (p.attached) parts.push(`**Locatie:** \`${dir}\` (gekoppelde map)`);
   if (p.description) parts.push(`\n${p.description}\n`);
 
   parts.push('\n## Projectinformatie\n');
   parts.push(projectMd.trim() || '_geen project.md gevonden_');
 
   parts.push('\n## Leidende context\n');
-  parts.push(contextMd.trim() || '_geen ai/context.md gevonden_');
+  parts.push(contextMd.trim() || '_geen context gevonden_');
 
   parts.push('\n## Open taken\n');
-  // Extract lines with "[ ]"
   const open = todoMd.split('\n').filter((l) => /\[ \]/.test(l));
   parts.push(open.length ? open.join('\n') : '_geen open taken_');
 

@@ -6,6 +6,13 @@ Views.settings = async function (root) {
   const cfg = await API.config();
 
   const rootInput = h('input', { type: 'text', class: 'wp-input', value: cfg.root, placeholder: '~/projecten of /Users/jij/Projecten' });
+  const browseRootBtn = h('button', {
+    type: 'button', class: 'button', onclick: () => FolderPicker.open({
+      title: 'Kies de projecten-root',
+      startPath: cfg.rootAbsolute,
+      onSelect: (p) => { rootInput.value = p; refreshStatus(); },
+    }),
+  }, '📁 Bladeren…');
   const codeInput = h('input', { type: 'text', class: 'wp-input', value: cfg.vscode, placeholder: 'code' });
   const portInput = h('input', { type: 'number', class: 'wp-input', value: cfg.port, min: 1, max: 65535 });
 
@@ -63,7 +70,8 @@ Views.settings = async function (root) {
   },
     h('table', { class: 'form-table' }, h('tbody', {},
       h('tr', {}, h('th', {}, 'Projecten-root'), h('td', {},
-        rootInput, absLine, h('div', { class: 'spacer' }),
+        h('div', { class: 'row' }, rootInput, browseRootBtn),
+        absLine, h('div', { class: 'spacer' }),
         h('div', { class: 'row' }, checkBtn, createBtn, statusLine),
         h('div', { class: 'small muted', style: 'margin-top:6px' },
           'Wijs hier naar de map waarin je klanten-submappen leven, bijv. ',

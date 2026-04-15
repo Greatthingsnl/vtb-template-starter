@@ -13,7 +13,12 @@ Views.projectDetail = async function (root, id) {
   const header = h('div', { class: 'row-between', style: 'margin-bottom:12px' },
     h('div', {},
       h('h1', { class: 'wp-heading', style: 'margin:0' }, project.projectName),
-      h('div', { class: 'muted' }, project.clientName, ' • ', statusPill(project.status)),
+      h('div', { class: 'muted' }, project.clientName, ' • ', statusPill(project.status),
+        project.attached ? h('span', { class: 'pill', style: 'margin-left:6px' }, 'gekoppeld') : null,
+      ),
+      project.externalPath
+        ? h('div', { class: 'small mono muted' }, '📁 ', project.externalPath)
+        : null,
     ),
     h('div', { class: 'row' },
       h('button', {

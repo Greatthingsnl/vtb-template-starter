@@ -7,6 +7,7 @@
     dashboard:      () => Views.dashboard(view),
     projects:       () => Views.projects(view),
     new:            () => Views.newProject(view),
+    attach:         () => Views.attach(view),
     project:        (id) => Views.projectDetail(view, id),
     ideas:          () => Views.ideas(view),
     notes:          () => Views.notes(view),

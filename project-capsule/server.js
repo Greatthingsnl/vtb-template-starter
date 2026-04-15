@@ -5,6 +5,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const { getConfig, getProjectsRoot, readJSON, writeJSON } = require('./lib/storage');
 const pm = require('./lib/projectManager');
@@ -107,6 +108,16 @@ app.post('/api/projects/:id/touch', (req, res) => {
   res.json(p);
 });
 
+// Attach an arbitrary existing folder as a project (no files moved/copied).
+app.post('/api/projects/attach', (req, res) => {
+  try {
+    const p = pm.attachProject(req.body || {});
+    res.status(201).json(p);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post('/api/projects/:id/clone', (req, res) => {
   try {
     const cloned = pm.cloneProject(req.params.id, req.body || {});
@@ -157,6 +168,59 @@ app.get('/api/projects/:id/context', (req, res) => {
 });
 
 app.get('/api/projects/:id/export', (req, res) => exportProject(req.params.id, res));
+
+// ---------- Filesystem browser (for folder picker) ----------
+// Lists directories under an absolute path. Local, single-user tool — no auth.
+app.get('/api/fs/list', (req, res) => {
+  try {
+    const raw = req.query.path ? String(req.query.path) : os.homedir();
+    const showHidden = String(req.query.showHidden || '') === '1';
+    let target = raw.startsWith('~') ? path.join(os.homedir(), raw.slice(1)) : raw;
+    target = path.resolve(target);
+    const stat = fs.statSync(target);
+    if (!stat.isDirectory()) return res.status(400).json({ error: 'Pad is geen map.' });
+    const entries = fs.readdirSync(target, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .filter((d) => showHidden || !d.name.startsWith('.'))
+      .map((d) => {
+        const full = path.join(target, d.name);
+        let hasCapsule = false, isGit = false;
+        try { hasCapsule = fs.existsSync(path.join(full, '.capsule.json')); } catch {}
+        try { isGit = fs.existsSync(path.join(full, '.git')); } catch {}
+        return { name: d.name, path: full, isDir: true, hasCapsule, isGit };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'nl'));
+    const parent = path.dirname(target);
+    res.json({
+      path: target,
+      parent: parent === target ? null : parent,
+      home: os.homedir(),
+      separator: path.sep,
+      entries,
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Quick shortcuts for the picker sidebar.
+app.get('/api/fs/places', (req, res) => {
+  const home = os.homedir();
+  const places = [
+    { name: 'Home',       path: home },
+    { name: 'Desktop',    path: path.join(home, 'Desktop') },
+    { name: 'Documents',  path: path.join(home, 'Documents') },
+    { name: 'Downloads',  path: path.join(home, 'Downloads') },
+    { name: 'Sites',      path: path.join(home, 'Sites') },
+    { name: 'Projects',   path: path.join(home, 'Projects') },
+    { name: 'Projecten',  path: path.join(home, 'Projecten') },
+    { name: 'Code',       path: path.join(home, 'Code') },
+    { name: '/',          path: '/' },
+  ].filter((p) => {
+    try { return fs.statSync(p.path).isDirectory(); } catch { return false; }
+  });
+  res.json(places);
+});
 
 // ---------- Scan / adopt ----------
 app.get('/api/scan', (req, res) => res.json(pm.scanForProjects()));

@@ -1,18 +1,8 @@
 // Global search across projects (metadata + markdown files), ideas, notes.
 const fs = require('fs');
 const path = require('path');
-const { listProjects, projectDir } = require('./projectManager');
+const { listProjects, projectDir, physicalFile, LOGICAL_FILES } = require('./projectManager');
 const { readJSON } = require('./storage');
-
-const SEARCHABLE_FILES = [
-  'docs/project.md',
-  'docs/readme.md',
-  'ai/prompts.md',
-  'ai/context.md',
-  'tasks/todo.md',
-  'changelog/changelog.md',
-  'deploy/deploy.md',
-];
 
 function makeSnippet(text, q, pad = 60) {
   const idx = text.toLowerCase().indexOf(q.toLowerCase());
@@ -40,15 +30,15 @@ function search(q) {
       });
     }
     const dir = projectDir(p);
-    for (const rel of SEARCHABLE_FILES) {
+    for (const logical of LOGICAL_FILES) {
       try {
-        const content = fs.readFileSync(path.join(dir, rel), 'utf8');
+        const content = fs.readFileSync(path.join(dir, physicalFile(p, logical)), 'utf8');
         if (content.toLowerCase().includes(needle)) {
           results.push({
             kind: 'file',
             projectId: p.id,
-            title: `${p.clientName} / ${p.projectName} — ${rel}`,
-            file: rel,
+            title: `${p.clientName} / ${p.projectName} — ${logical}`,
+            file: logical,
             snippet: makeSnippet(content, query),
           });
         }
