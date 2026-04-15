@@ -1,0 +1,18 @@
+{
+  "name": "project-capsule",
+  "version": "1.0.0",
+  "description": "Lokale project & AI capsule tool voor developers — persoonlijk projectdashboard en extern geheugen.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "express": "^4.19.2"
+  }
+}

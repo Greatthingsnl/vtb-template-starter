@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+*.log
+
+# Lokale gebruikersdata — niet committen
+data/projects.json
+data/ideas.json
+data/notes.json
+data/devices.json
+
+# Gegenereerde projectmappen — niet committen
+klanten/
