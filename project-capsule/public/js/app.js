@@ -15,6 +15,7 @@
     devices:        () => Views.devices(view),
     remote:         () => Views.remote(view),
     scan:           () => Views.scan(view),
+    settings:       () => Views.settings(view),
   };
 
   function route() {

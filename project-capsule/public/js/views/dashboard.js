@@ -4,7 +4,10 @@ window.Views = window.Views || {};
 Views.dashboard = async function (root) {
   const { h, fmtDate, statusPill } = UI;
 
-  const [projects, ideas, notes] = await Promise.all([API.projects(), API.ideas(), API.notes()]);
+  const [projects, ideas, notes, cfg, rootCheck] = await Promise.all([
+    API.projects(), API.ideas(), API.notes(), API.config(),
+    API.ensureRoot(false).catch(() => ({ exists: false, root: '' })),
+  ]);
 
   const countByStatus = {};
   for (const p of projects) countByStatus[p.status] = (countByStatus[p.status] || 0) + 1;
@@ -22,6 +25,24 @@ Views.dashboard = async function (root) {
   ];
 
   root.appendChild(h('h1', { class: 'wp-heading' }, 'Dashboard'));
+
+  // First-run banner: help the user pick a project folder.
+  if (!rootCheck.exists || projects.length === 0) {
+    const msg = !rootCheck.exists
+      ? h('div', {},
+          h('strong', {}, 'Projectmap bestaat nog niet. '),
+          'Ga naar ', h('a', { href: '#/settings' }, 'Instellingen'),
+          ' om je map te kiezen of aan te maken.',
+          h('div', { class: 'small muted' }, 'Huidig pad: ', h('span', { class: 'mono' }, cfg.rootAbsolute)),
+        )
+      : h('div', {},
+          h('strong', {}, 'Nog geen projecten. '),
+          'Maak een ', h('a', { href: '#/new' }, 'nieuw project'),
+          ' aan, of ', h('a', { href: '#/scan' }, 'scan je bestaande mappen'),
+          '. Niet de juiste map? Ga naar ', h('a', { href: '#/settings' }, 'Instellingen'), '.',
+        );
+    root.appendChild(h('div', { class: 'notice warn' }, msg));
+  }
 
   // welcome panel (WordPress "At a Glance")
   root.appendChild(h('div', { class: 'postbox' },

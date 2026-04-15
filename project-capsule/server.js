@@ -25,6 +25,44 @@ app.get('/api/config', (req, res) => {
   res.json({ ...cfg, rootAbsolute: getProjectsRoot() });
 });
 
+// Update root / vscode / port. Port change needs a server restart; we return a flag.
+app.put('/api/config', (req, res) => {
+  const cur = getConfig();
+  const next = { ...cur };
+  const body = req.body || {};
+
+  if (typeof body.root === 'string' && body.root.trim()) {
+    // Accept either absolute or ~/ paths. Expand ~.
+    let r = body.root.trim();
+    if (r.startsWith('~')) r = path.join(require('os').homedir(), r.slice(1));
+    next.root = r;
+  }
+  if (typeof body.vscode === 'string' && body.vscode.trim()) {
+    next.vscode = body.vscode.trim();
+  }
+  let restartNeeded = false;
+  if (typeof body.port === 'number' && Number.isInteger(body.port) && body.port > 0 && body.port < 65536) {
+    if (body.port !== cur.port) restartNeeded = true;
+    next.port = body.port;
+  }
+  writeJSON('config.json', next);
+  res.json({ ...next, rootAbsolute: getProjectsRoot(), restartNeeded });
+});
+
+// Check whether the projects-root exists; optionally create it.
+app.post('/api/config/ensure-root', (req, res) => {
+  const root = getProjectsRoot();
+  const existed = fs.existsSync(root);
+  const create = !!(req.body && req.body.create);
+  if (!existed && create) {
+    try { fs.mkdirSync(root, { recursive: true }); }
+    catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+  const exists = fs.existsSync(root);
+  const isDir = exists && fs.statSync(root).isDirectory();
+  res.json({ root, existed, exists, isDir, created: !existed && exists });
+});
+
 // ---------- Templates ----------
 app.get('/api/templates', (req, res) => res.json(listTemplates()));
 

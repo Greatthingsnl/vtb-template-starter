@@ -18,6 +18,8 @@ window.API = (() => {
   }
   return {
     config:      ()         => req('GET',    '/api/config'),
+    updateConfig:(p)        => req('PUT',    '/api/config', p),
+    ensureRoot:  (create)   => req('POST',   '/api/config/ensure-root', { create: !!create }),
     templates:   ()         => req('GET',    '/api/templates'),
 
     projects:    ()         => req('GET',    '/api/projects'),
