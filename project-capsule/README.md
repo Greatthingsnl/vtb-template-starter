@@ -16,6 +16,23 @@ npm start
 
 Open [http://localhost:4321](http://localhost:4321) in je browser.
 
+### Dubbelklik-starten op macOS
+
+In de `scripts/` map staan een paar dubbelklikbare `.command` bestanden:
+
+| Script | Wat het doet |
+|---|---|
+| `start-capsule.command` | Start de server en opent de browser |
+| `open-capsule.command` | Opent alleen de browser (start server als die uit staat) |
+| `install-autostart.command` | Tool start voortaan automatisch bij Mac-login (LaunchAgent) |
+| `uninstall-autostart.command` | Verwijdert de auto-start |
+
+**Eerste keer:** dubbelklik op `start-capsule.command` in Finder. Als macOS waarschuwt ("kan niet openen want ontwikkelaar niet geverifieerd"), klik rechtsklik → **Open** → **Open** — hoeft maar één keer.
+
+**Dock / desktop snelkoppeling:** sleep `start-capsule.command` naar je Dock (rechterkant, bij de Prullenmand) of naar je Bureaublad om er een permanente launcher van te maken. Een pittige icoon zetten kan via **Rechtsklik → Info → Icoon slepen op het kleine iconogram linksboven**.
+
+**Altijd aan:** dubbelklik éénmaal `install-autostart.command`. Vanaf dat moment draait de server permanent op de achtergrond, ook na herstart van de Mac. Open dan voortaan gewoon de browser (of gebruik `open-capsule.command`).
+
 ## Wat doet het?
 
 - **Dashboard** — overzicht van al je projecten (naam, klant, status, laatste activiteit)
